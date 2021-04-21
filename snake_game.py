@@ -11,14 +11,14 @@ base_directory = os.path.abspath(os.path.dirname(__file__))
 
 class Apple:
     def __init__(self, game_canvas):
-        self.apple_block = pygame.image.load(os.path.join(base_directory, 'resources/apple.jpg')).convert()    #load new image from a file (or file-like object)
+        self.apple_block = pygame.image.load(os.path.join(base_directory, 'resources/apple.jpg')).convert()
         self.apple_x = UNIVERSAL_SIZE*randint(1,(CANVAS_SIZE[0]//20)-1)
         self.apple_y = UNIVERSAL_SIZE*randint(1,(CANVAS_SIZE[1]//20)-1)
         self.game_canvas = game_canvas
 
     def draw_apple(self):
-        self.game_canvas.blit(self.apple_block, (self.apple_x, self.apple_y))    #draw one image onto another
-        pygame.display.flip()               #Update the full display Surface to the screen
+        self.game_canvas.blit(self.apple_block, (self.apple_x, self.apple_y))
+        pygame.display.flip()
 
     def new_apple(self):
         
@@ -34,18 +34,18 @@ class Apple:
                 self.apple_y = temp
                 break 
         
-        self.game_canvas.blit(self.apple_block, (self.apple_x, self.apple_y))    #draw one image onto another
+        self.game_canvas.blit(self.apple_block, (self.apple_x, self.apple_y))
         pygame.display.flip() 
 
 class Snake:
     def __init__(self, game_canvas, snake_length):
-        self.snake_block = pygame.image.load(os.path.join(base_directory, 'resources/snake.jpg')).convert()    #load new image from a file (or file-like object)
+        self.snake_block = pygame.image.load(os.path.join(base_directory, 'resources/snake.jpg')).convert()
         self.game_canvas = game_canvas
         self.snake_length = snake_length
         self.snake_x = [UNIVERSAL_SIZE]*snake_length
         self.snake_y = [UNIVERSAL_SIZE]*snake_length
 
-        random_direction = randint(1,4)         # random direction by default
+        random_direction = randint(1,4)
         if random_direction == 1:
             self.direction = 'upwards'
         elif random_direction == 2:
@@ -58,20 +58,20 @@ class Snake:
         while True:
             temp = randint(80, CANVAS_SIZE[0]-80)
             if (temp % 20) == 0:      
-                self.snake_x[0] = temp      #snake x co-ordinate (initial x-position)
+                self.snake_x[0] = temp
                 break
         
         while True:
             temp = randint(80,CANVAS_SIZE[1]-80)
             if (temp % 20) == 0:      
-                self.snake_y[0] = temp      #snake y co-ordinate (initial y-position)
+                self.snake_y[0] = temp
                 break
          
     def draw_snake(self):
-        self.game_canvas.fill(BACKGROUND_COLOR)   #fill Surface with a solid color
+        self.game_canvas.fill(BACKGROUND_COLOR)
         for i in range (self.snake_length):
-            self.game_canvas.blit(self.snake_block, (self.snake_x[i], self.snake_y[i]))    #draw one image onto another
-        pygame.display.flip()               #Update the full display Surface to the screen
+            self.game_canvas.blit(self.snake_block, (self.snake_x[i], self.snake_y[i]))
+        pygame.display.flip()
 
     def snake_increase(self):
         self.snake_length += 1
@@ -116,13 +116,14 @@ class Game:
         pygame.display.set_caption('Snake and Apple Game      -- deepspraj')
         pygame.mixer.init()
         self.play_background_music()
-        self.game_canvas = pygame.display.set_mode((0,0),  pygame.RESIZABLE )   #Initialize a window or screen for display
-        self.game_canvas.fill(BACKGROUND_COLOR)   #fill Surface with a solid color
+        self.game_canvas = pygame.display.set_mode(CANVAS_SIZE)
+        self.game_canvas.fill(BACKGROUND_COLOR)
         self.snake = Snake(self.game_canvas, 1)
         self.snake.draw_snake()
         self.apple = Apple(self.game_canvas)
         self.apple.draw_apple()
         self.game_over_channel = 0
+        self.speed = 0.3
 
     def play_game(self):
         self.snake.continue_moving()
@@ -170,24 +171,15 @@ class Game:
             return True
         return False
 
-    # def background_canvas(self):
-    #     for x in range(0, CANVAS_SIZE[0], 20):
-    #         for y in range(0, CANVAS_SIZE[1], 20):
-    #             if (CANVAS_SIZE[0]-120 < x < CANVAS_SIZE[0]-40 ) and (y == 20):
-    #                 continue
-    #             rect = pygame.Rect(x, y, 20, 20)
-    #             pygame.draw.rect(self.game_canvas, (0, 0, 0), rect, 1)
-    #     pygame.display.flip()
-
     def score_display_game(self):
         font = pygame.font.SysFont("arial", 20)
-        score = font.render(f"Score: {self.snake.snake_length-1}", True, (0, 0, 0))
+        score = font.render(f"Score: {self.snake.snake_length}", True, (0, 0, 0))
         self.game_canvas.blit(score, (CANVAS_SIZE[0]-100, 20))
 
     def game_over(self):
         self.game_canvas.fill(BACKGROUND_COLOR)
         font = pygame.font.SysFont("arial", 20)
-        score = font.render(f"Your score was {self.snake.snake_length-1}.", True, (0, 0, 0))
+        score = font.render(f"Your score was {self.snake.snake_length}.", True, (0, 0, 0))
         self.game_canvas.blit(score, (CANVAS_SIZE[0]//8, (CANVAS_SIZE[1]//2)-50))
         score = font.render("Please hit enter to restart the game or escape to exit!", True, (0, 0, 0))
         self.game_canvas.blit(score, (CANVAS_SIZE[0]//8, (CANVAS_SIZE[1]//2)))
@@ -205,30 +197,36 @@ class Game:
 
         while run_main_while:
 
-            for event in pygame.event.get():    #get events from the queue
-                if event.type == KEYDOWN:   #if event type occurred from the queue is keyboard type 
+            for event in pygame.event.get():
+                if event.type == KEYDOWN:
 
                     if event.key == K_RETURN:
                         game_over_status = False
                         pygame.mixer.music.unpause()
                         self.game_over_channel.stop()
+                        self.speed = 0.3
 
-                    if event.key == K_ESCAPE:   #if event type occurred from the queue is keyboard type is escape pressed
+                    if (event.key == K_ESCAPE) or (event.key == K_q):
                         run_main_while = False
 
                     if not game_over_status:
-                        if (event.key == K_UP) or (event.key == K_w):
+                        if (event.key == K_w):
                             self.snake.move_upwards()
-                        if (event.key == K_DOWN) or (event.key == K_s):
+                        if (event.key == K_s):
                             self.snake.move_downwards()
-                        if (event.key == K_RIGHT) or (event.key == K_d):
+                        if (event.key == K_d):
                             self.snake.move_right()
-                        if (event.key == K_LEFT) or (event.key == K_a):
+                        if (event.key == K_a):
                             self.snake.move_left()
-                elif event.type == QUIT:    #if event type occurred from the queue is X (cancel) pressed
+                elif event.type == QUIT:
                     run_main_while = False
 
-            sleep(0.250)
+            speed_adjuster = ((-0.00011904761904761894*(self.snake.snake_length**2)) - (0.005238095238095236*self.snake.snake_length) + 0.3053571428571429)
+            
+            if 0.03 < speed_adjuster < 0.3:
+                self.speed = round(speed_adjuster,3)
+                
+            sleep(self.speed)
 
             try:
                 if not game_over_status:
@@ -239,8 +237,6 @@ class Game:
                 self.reset_game()
                 game_over_status = True
 
-            # if not game_over_status:
-            #     self.background_canvas()
 
 if __name__ == "__main__":
     new_game = Game()
